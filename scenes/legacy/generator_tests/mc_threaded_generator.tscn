@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwucl3gml86um"]
+
+[ext_resource type="Script" uid="uid://cw6a71th2djkc" path="res://scripts/legacy/test_generator_scripts/ThreadedMC.cs" id="1_u0pov"]
+
+[node name="Generator" type="Node3D"]
+script = ExtResource("1_u0pov")
+frequency = 0.05
+fudgeFactor = 1.5
+sharpenator = 3.0

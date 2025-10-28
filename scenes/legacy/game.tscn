@@ -1,0 +1,114 @@
+[gd_scene load_steps=16 format=3 uid="uid://c4u1gwg2yebm7"]
+
+[ext_resource type="Script" uid="uid://cqprvprl34p62" path="res://scripts/manager_scripts/GameManager.cs" id="1_iywne"]
+[ext_resource type="Script" uid="uid://d4gkshj4ke1ti" path="res://scripts/player_scripts/PlayerController.cs" id="1_lnu2h"]
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="1_yqjtg"]
+[ext_resource type="Script" uid="uid://bpve2rdngsdyx" path="res://scripts/player_scripts/CameraController.cs" id="4_lbhrr"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lbhrr"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_iywne"]
+sky_material = SubResource("ProceduralSkyMaterial_lbhrr")
+
+[sub_resource type="Environment" id="Environment_p57ef"]
+background_mode = 2
+sky = SubResource("Sky_iywne")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_uwrxv"]
+
+[sub_resource type="HeightMapShape3D" id="HeightMapShape3D_uwrxv"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_yqjtg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iywne"]
+albedo_color = Color(1, 0.313512, 0.338241, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_uwrxv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p57ef"]
+albedo_color = Color(0.206103, 0.880392, 0, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lbhrr"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lbhrr"]
+albedo_color = Color(0, 0, 0, 1)
+metallic_specular = 1.0
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_iywne")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_p57ef")
+
+[node name="Light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.970296, 0.13176, -0.202893, 0, 0.838671, 0.544639, 0.241922, -0.528461, 0.813758, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
+mesh = SubResource("PlaneMesh_uwrxv")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Ground"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/StaticBody3D"]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+shape = SubResource("HeightMapShape3D_uwrxv")
+
+[node name="Player" type="RigidBody3D" parent="." node_paths=PackedStringArray("cameraAnchor", "body", "groundRayCast")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 7)
+lock_rotation = true
+script = ExtResource("1_lnu2h")
+movementForce = 30.0
+cameraAnchor = NodePath("Body/Camera Anchor")
+body = NodePath("Body")
+groundRayCast = NodePath("Grounder")
+
+[node name="Body" type="Node3D" parent="Player"]
+physics_interpolation_mode = 1
+
+[node name="Camera Anchor" type="Node3D" parent="Player/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.518827, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("CapsuleMesh_yqjtg")
+surface_material_override/0 = SubResource("StandardMaterial3D_iywne")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("CapsuleShape3D_uwrxv")
+
+[node name="Grounder" type="RayCast3D" parent="Player"]
+target_position = Vector3(0, -1.1, 0)
+
+[node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 3)
+script = ExtResource("1_yqjtg")
+Camera = NodePath("Debug Camera")
+
+[node name="Debug Camera" type="Camera3D" parent="Debug Cam"]
+
+[node name="Pillar" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0107589, 8.5, 0.00459957)
+size = Vector3(1, 100, 1)
+material = SubResource("StandardMaterial3D_p57ef")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Pillar"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pillar/StaticBody3D"]
+shape = SubResource("BoxShape3D_lbhrr")
+
+[node name="Main Cam" type="Node3D" parent="." node_paths=PackedStringArray("anchor", "mainCam")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.52687, 7)
+script = ExtResource("4_lbhrr")
+anchor = NodePath("../Player/Body/Camera Anchor")
+mainCam = NodePath("Main Camera")
+
+[node name="Main Camera" type="Camera3D" parent="Main Cam"]
+
+[node name="Glasses" type="CSGBox3D" parent="Main Cam"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.226621)
+size = Vector3(0.775208, 0.199036, 0.726318)
+material = SubResource("StandardMaterial3D_lbhrr")

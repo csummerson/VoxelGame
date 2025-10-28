@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://v2id66oo44td"]
+
+[node name="DebugCube" type="CSGBox3D"]
+size = Vector3(0.25, 0.25, 0.25)

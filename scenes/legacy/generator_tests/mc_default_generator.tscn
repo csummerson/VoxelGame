@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://bgeiome34p3bx"]
+
+[ext_resource type="Script" uid="uid://m0b8mu0ovvpf" path="res://scripts/legacy/test_generator_scripts/MarchingCubes.cs" id="1_oqco3"]
+
+[node name="Generator" type="Node3D"]
+script = ExtResource("1_oqco3")
+sizeY = 64
+frequency = 0.05
+fudgeFactor = 1.5
+sharpenator = 3.0

@@ -1,0 +1,40 @@
+[gd_scene load_steps=6 format=3 uid="uid://bl3kht8ftwqfv"]
+
+[ext_resource type="Script" uid="uid://m0b8mu0ovvpf" path="res://scripts/legacy/test_generator_scripts/MarchingCubes.cs" id="1_8dqn6"]
+[ext_resource type="PackedScene" uid="uid://bfvy2h7r7joak" path="res://scenes/player/debug_cam.tscn" id="2_8dqn6"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_top_color = Color(0.397992, 0.731253, 0.998709, 1)
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+background_color = Color(0, 0.537255, 1, 1)
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Level" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.898377, -0.238562, 0.36879, -0.0374431, 0.87818, 0.476863, -0.437625, 0.414594, -0.797869, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Generator" type="Node3D" parent="."]
+script = ExtResource("1_8dqn6")
+sizeX = 512
+sizeY = 64
+sizeZ = 512
+frequency = 0.05
+fudgeFactor = 1.5
+sharpenator = 3.0
+
+[node name="Debug Cam" parent="." instance=ExtResource("2_8dqn6")]
+MoveSpeed = 20.0

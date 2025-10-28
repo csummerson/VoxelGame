@@ -1,0 +1,111 @@
+[gd_scene load_steps=6 format=3 uid="uid://lg6js0ebqmeg"]
+
+[ext_resource type="PackedScene" uid="uid://bfvy2h7r7joak" path="res://scenes/player/debug_cam.tscn" id="3_w248g"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_top_color = Color(0.397992, 0.731253, 0.998709, 1)
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+background_color = Color(0, 0.537255, 1, 1)
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="CSharpScript" id="CSharpScript_3movq"]
+script/source = "using Godot;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
+public partial class ThreadedTerrainGenerator : Node3D
+{
+	[Export] public int renderDistance = 16;
+	[Export] public PackedScene MarchingCubesScene;
+	[Export] Camera3D camera;
+	
+	private Dictionary<Vector3I, ThreadedMC> activeChunks = new();
+
+	public override void _Process(double delta)
+	{
+		Vector3I cameraChunkPos = WorldToChunk(camera.GlobalPosition);
+		HashSet<Vector3I> newChunks = new();
+
+		for (int x = -renderDistance; x <= renderDistance; x++)
+		{
+			for (int z = -renderDistance; z <= renderDistance; z++)
+			{
+				Vector3I chunk = cameraChunkPos + new Vector3I(x, 0, z);
+				newChunks.Add(chunk);
+
+				if (!activeChunks.ContainsKey(chunk))
+				{
+					SpawnChunk(chunk);
+				}
+			}
+		}
+
+		foreach (var chunk in activeChunks)
+		{
+			if (!newChunks.Contains(chunk.Key))
+			{
+				chunk.Value.QueueFree();
+				activeChunks.Remove(chunk.Key);
+			}
+		}
+
+	}
+
+	private void SpawnChunk(Vector3I chunkPos)
+	{
+		ThreadedMC chunk = MarchingCubesScene.Instantiate<ThreadedMC>();
+		chunk.offset = new Vector3I(
+			chunkPos.X * 16,
+			0,
+			chunkPos.Z * 16
+		);
+		chunk.Position = chunk.offset;
+		AddChild(chunk);
+
+		chunk.GenerateAsync((meshIns) =>
+		{
+			MeshInstance3D meshInstance = meshIns;
+			chunk.AddChild(meshInstance);
+		});
+
+		activeChunks[chunkPos] = chunk;
+	}
+
+	private Vector3I WorldToChunk(Vector3 p)
+	{
+		int x = Mathf.FloorToInt(p.X / 16);
+		int y = 0;
+		int z = Mathf.FloorToInt(p.Z / 16);
+
+		return new Vector3I(x, y, z);
+	}
+
+}
+"
+
+[node name="Level" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.898377, -0.238562, 0.36879, -0.0374431, 0.87818, 0.476863, -0.437625, 0.414594, -0.797869, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Generator" type="Node3D" parent="."]
+script = SubResource("CSharpScript_3movq")
+
+[node name="Debug Cam" parent="." instance=ExtResource("3_w248g")]
+MoveSpeed = 20.0
+
+[editable path="Debug Cam"]

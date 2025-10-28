@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://byeaqsgj8vydv"]
+
+[ext_resource type="Script" uid="uid://c0ymnic0vfwdb" path="res://scripts/manager_scripts/SaveManager.cs" id="1_khdfm"]
+
+[node name="Save Manager" type="Node"]
+script = ExtResource("1_khdfm")
+savePath = "user://settings.cfg"

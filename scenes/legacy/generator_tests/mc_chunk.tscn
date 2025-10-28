@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://bgj7v03mj1c7"]
+
+[ext_resource type="Script" uid="uid://m0b8mu0ovvpf" path="res://scripts/legacy/test_generator_scripts/MarchingCubes.cs" id="1_ausao"]
+
+[node name="MC Chunk" type="Node3D"]
+script = ExtResource("1_ausao")
+sizeY = 256
+frequency = 0.05
+fudgeFactor = 1.5
+sharpenator = 3.0

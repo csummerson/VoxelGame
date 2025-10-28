@@ -1,0 +1,172 @@
+[gd_scene load_steps=22 format=3 uid="uid://cne473ymsn3ti"]
+
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_f031r"]
+[ext_resource type="Script" uid="uid://ttg5lm6ld0cg" path="res://scripts/ui_scripts/SphericalCoordinateDisplay.cs" id="2_6jsic"]
+[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="3_fcecf"]
+[ext_resource type="Script" uid="uid://ddxti2fkatf5p" path="res://scripts/ui_scripts/VersionLabel.cs" id="4_0l3jq"]
+[ext_resource type="Script" uid="uid://cny0vso0qwky7" path="res://scripts/legacy/planet_scripts/Planet.cs" id="4_br7yq"]
+[ext_resource type="Script" uid="uid://ct1un7q42k140" path="res://scripts/legacy/planet_scripts/PlanetSettings.cs" id="5_7ilkt"]
+[ext_resource type="Script" uid="uid://jtwurtked4xf" path="res://scripts/legacy/CelestialObject.cs" id="5_f031r"]
+[ext_resource type="Script" uid="uid://i2vst8tv2250" path="res://scripts/legacy/planet_scripts/PlanetTerrainGenerator.cs" id="7_f031r"]
+[ext_resource type="Script" uid="uid://dpr3bvd35eiw8" path="res://scripts/player_scripts/PlayerManager.cs" id="12_sax5s"]
+[ext_resource type="Script" uid="uid://d4gkshj4ke1ti" path="res://scripts/player_scripts/PlayerController.cs" id="13_0lt2h"]
+[ext_resource type="Script" uid="uid://bpve2rdngsdyx" path="res://scripts/player_scripts/CameraController.cs" id="14_6pmeo"]
+[ext_resource type="Script" uid="uid://b70kbaa4664ve" path="res://scripts/player_scripts/PlayerInput.cs" id="15_o7cn8"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_yqjtg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iywne"]
+albedo_color = Color(1, 0.313512, 0.338241, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_uwrxv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lbhrr"]
+albedo_color = Color(0, 0, 0, 1)
+metallic_specular = 1.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_f5igj"]
+properties/0/path = NodePath("Player:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("Main Cam:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Main Cam:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("Player/Nickname:text")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_8whgg"]
+properties/0/path = NodePath(".:inputDirection")
+properties/0/spawn = false
+properties/0/replication_mode = 1
+
+[node name="Level" type="Node3D"]
+
+[node name="Debug Utils" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Coords" type="Label" parent="Debug Utils"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_fonts/font = ExtResource("1_f031r")
+text = "ρ: θ: φ:"
+script = ExtResource("2_6jsic")
+
+[node name="Label" type="Label" parent="Debug Utils"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -58.0
+offset_bottom = 49.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("3_fcecf")
+text = "0xDEC"
+script = ExtResource("4_0l3jq")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Planet" type="Node3D" parent="." node_paths=PackedStringArray("settings")]
+script = ExtResource("4_br7yq")
+settings = NodePath("Planet Settings")
+
+[node name="Planet Settings" type="Node3D" parent="Planet"]
+script = ExtResource("5_7ilkt")
+chunkRadius = 128
+
+[node name="Celestial" type="Node3D" parent="Planet"]
+script = ExtResource("5_f031r")
+
+[node name="Terrain" type="Node3D" parent="Planet" node_paths=PackedStringArray("settings")]
+script = ExtResource("7_f031r")
+settings = NodePath("../Planet Settings")
+renderDistance = 8
+
+[node name="Player Container" type="Node3D" parent="." node_paths=PackedStringArray("camera")]
+physics_interpolation_mode = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2080, 0)
+script = ExtResource("12_sax5s")
+camera = NodePath("Main Cam/Main Camera")
+
+[node name="Player" type="RigidBody3D" parent="Player Container" node_paths=PackedStringArray("playerInput", "cameraAnchor", "body", "groundRayCast")]
+lock_rotation = true
+script = ExtResource("13_0lt2h")
+playerInput = NodePath("../PlayerInput")
+movementForce = 15.0
+jumpForce = 6.0
+extraGravity = 2.0
+maxSpeed = 10.0
+cameraAnchor = NodePath("Body/Camera Anchor")
+body = NodePath("Body")
+groundRayCast = NodePath("Grounder")
+
+[node name="Body" type="Node3D" parent="Player Container/Player"]
+physics_interpolation_mode = 1
+
+[node name="Camera Anchor" type="Node3D" parent="Player Container/Player/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.518827, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Player Container/Player"]
+mesh = SubResource("CapsuleMesh_yqjtg")
+surface_material_override/0 = SubResource("StandardMaterial3D_iywne")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player Container/Player"]
+shape = SubResource("CapsuleShape3D_uwrxv")
+
+[node name="Grounder" type="RayCast3D" parent="Player Container/Player"]
+target_position = Vector3(0, -1.1, 0)
+
+[node name="Nickname" type="Label3D" parent="Player Container/Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0428752, 1.36298, 0.0272665)
+billboard = 1
+text = "Temp"
+
+[node name="Main Cam" type="Node3D" parent="Player Container" node_paths=PackedStringArray("anchor", "mainCam")]
+physics_interpolation_mode = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.527, 0)
+script = ExtResource("14_6pmeo")
+anchor = NodePath("../Player/Body/Camera Anchor")
+mainCam = NodePath("Main Camera")
+
+[node name="Main Camera" type="Camera3D" parent="Player Container/Main Cam"]
+current = true
+
+[node name="Glasses" type="CSGBox3D" parent="Player Container/Main Cam"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.226621)
+size = Vector3(0.775208, 0.199036, 0.726318)
+material = SubResource("StandardMaterial3D_lbhrr")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="Player Container"]
+replication_config = SubResource("SceneReplicationConfig_f5igj")
+
+[node name="PlayerInput" type="MultiplayerSynchronizer" parent="Player Container"]
+root_path = NodePath(".")
+replication_config = SubResource("SceneReplicationConfig_8whgg")
+script = ExtResource("15_o7cn8")

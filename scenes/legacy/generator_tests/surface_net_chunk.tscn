@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cfmmn516gm2j5"]
+
+[ext_resource type="Script" uid="uid://bsw4nic4xi2fm" path="res://scripts/legacy/test_generator_scripts/ThreadedSurfaceNetter.cs" id="1_dmfbu"]
+
+[node name="Surface Net Chunk" type="Node3D"]
+script = ExtResource("1_dmfbu")

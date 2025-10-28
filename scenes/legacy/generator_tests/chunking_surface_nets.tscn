@@ -1,0 +1,40 @@
+[gd_scene load_steps=7 format=3 uid="uid://cydjresvpu6rf"]
+
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="1_rjuvf"]
+[ext_resource type="Script" uid="uid://bgikbxrama2rx" path="res://scripts/legacy/test_generator_scripts/SNTerrainGenerator.cs" id="2_rjuvf"]
+[ext_resource type="PackedScene" uid="uid://cfmmn516gm2j5" path="res://scenes/legacy/generator_tests/surface_net_chunk.tscn" id="3_p3mi0"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Level" type="Node3D"]
+
+[node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
+script = ExtResource("1_rjuvf")
+MoveSpeed = 10.0
+Camera = NodePath("Debug Camera")
+
+[node name="Debug Camera" type="Camera3D" parent="Debug Cam"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Generator" type="Node3D" parent="." node_paths=PackedStringArray("TargetCamera")]
+script = ExtResource("2_rjuvf")
+TargetCamera = NodePath("../Debug Cam/Debug Camera")
+threadedSNScene = ExtResource("3_p3mi0")
+RenderDistance = 16

@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://lq8mhiuo5ykr"]
+
+[ext_resource type="Shader" uid="uid://bex7qmi85y3fx" path="res://shaders/water.tres" id="1_udem3"]
+[ext_resource type="Script" uid="uid://b0i78e650fygn" path="res://scripts/final_generators/WaterDuplicator.cs" id="2_d61yn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y002a"]
+render_priority = 0
+shader = ExtResource("1_udem3")
+shader_parameter/ColorParameter = Color(0.015686, 0.360784, 1, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_4ytmu"]
+material = SubResource("ShaderMaterial_y002a")
+size = Vector2(16, 16)
+subdivide_width = 20
+subdivide_depth = 20
+
+[node name="WaterChunk" type="MeshInstance3D"]
+mesh = SubResource("PlaneMesh_4ytmu")
+script = ExtResource("2_d61yn")

@@ -1,0 +1,10 @@
+[gd_scene load_steps=4 format=3 uid="uid://7kswv5k4iuc2"]
+
+[ext_resource type="Script" uid="uid://4rhc75v1dt5p" path="res://scripts/manager_scripts/Main.cs" id="1_o5qli"]
+[ext_resource type="PackedScene" uid="uid://b3wmxbmpohu0b" path="res://scenes/ui/terminal.tscn" id="2_klkgf"]
+[ext_resource type="PackedScene" uid="uid://bqongbtp5rapd" path="res://scenes/ui/error.tscn" id="3_tu3op"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_o5qli")
+serverScene = ExtResource("2_klkgf")
+playerScenes = Array[PackedScene]([ExtResource("3_tu3op"), ExtResource("2_klkgf"), ExtResource("2_klkgf"), ExtResource("2_klkgf")])

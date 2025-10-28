@@ -1,0 +1,94 @@
+[gd_scene load_steps=11 format=3 uid="uid://oa1yrmfvmnaq"]
+
+[ext_resource type="Script" uid="uid://dpr3bvd35eiw8" path="res://scripts/player_scripts/PlayerManager.cs" id="1_dqkch"]
+[ext_resource type="Script" uid="uid://d4gkshj4ke1ti" path="res://scripts/player_scripts/PlayerController.cs" id="1_qhqgy"]
+[ext_resource type="Script" uid="uid://bpve2rdngsdyx" path="res://scripts/player_scripts/CameraController.cs" id="2_dqkch"]
+[ext_resource type="Script" uid="uid://b70kbaa4664ve" path="res://scripts/player_scripts/PlayerInput.cs" id="3_qlg0r"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_yqjtg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iywne"]
+albedo_color = Color(1, 0.313512, 0.338241, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_uwrxv"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lbhrr"]
+albedo_color = Color(0, 0, 0, 1)
+metallic_specular = 1.0
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_f5igj"]
+properties/0/path = NodePath("Player:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("Main Cam:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Main Cam:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("Player/Nickname:text")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_8whgg"]
+properties/0/path = NodePath(".:inputDirection")
+properties/0/spawn = false
+properties/0/replication_mode = 1
+
+[node name="Player Container" type="Node3D" node_paths=PackedStringArray("camera")]
+physics_interpolation_mode = 1
+script = ExtResource("1_dqkch")
+camera = NodePath("Main Cam/Main Camera")
+
+[node name="Player" type="RigidBody3D" parent="." node_paths=PackedStringArray("playerInput", "cameraAnchor", "body", "groundRayCast")]
+lock_rotation = true
+script = ExtResource("1_qhqgy")
+playerInput = NodePath("../PlayerInput")
+movementForce = 30.0
+cameraAnchor = NodePath("Body/Camera Anchor")
+body = NodePath("Body")
+groundRayCast = NodePath("Grounder")
+
+[node name="Body" type="Node3D" parent="Player"]
+physics_interpolation_mode = 1
+
+[node name="Camera Anchor" type="Node3D" parent="Player/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.518827, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("CapsuleMesh_yqjtg")
+surface_material_override/0 = SubResource("StandardMaterial3D_iywne")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
+shape = SubResource("CapsuleShape3D_uwrxv")
+
+[node name="Grounder" type="RayCast3D" parent="Player"]
+target_position = Vector3(0, -1.1, 0)
+
+[node name="Nickname" type="Label3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0428752, 1.36298, 0.0272665)
+billboard = 1
+text = "Temp"
+
+[node name="Main Cam" type="Node3D" parent="." node_paths=PackedStringArray("anchor", "mainCam")]
+physics_interpolation_mode = 1
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.527, 0)
+script = ExtResource("2_dqkch")
+anchor = NodePath("../Player/Body/Camera Anchor")
+mainCam = NodePath("Main Camera")
+
+[node name="Main Camera" type="Camera3D" parent="Main Cam"]
+current = true
+
+[node name="Glasses" type="CSGBox3D" parent="Main Cam"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.226621)
+size = Vector3(0.775208, 0.199036, 0.726318)
+material = SubResource("StandardMaterial3D_lbhrr")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_f5igj")
+
+[node name="PlayerInput" type="MultiplayerSynchronizer" parent="."]
+root_path = NodePath(".")
+replication_config = SubResource("SceneReplicationConfig_8whgg")
+script = ExtResource("3_qlg0r")

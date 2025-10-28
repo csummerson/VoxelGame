@@ -1,0 +1,105 @@
+[gd_scene load_steps=14 format=3 uid="uid://bqongbtp5rapd"]
+
+[ext_resource type="Script" uid="uid://ykttywp4ocan" path="res://scripts/ui_scripts/LoadSequence.cs" id="1_scgte"]
+[ext_resource type="PackedScene" uid="uid://ph7fv8dfp2ow" path="res://scenes/ui/player_out.tscn" id="2_rfgyy"]
+[ext_resource type="PackedScene" uid="uid://d3l4mea74t85t" path="res://scenes/ui/tor_out.tscn" id="3_ehye4"]
+[ext_resource type="PackedScene" uid="uid://d3hj0wht8l0q5" path="res://scenes/legacy/generators/player_planet.tscn" id="4_ol1sy"]
+[ext_resource type="Script" uid="uid://bai4stic0n7rg" path="res://scripts/ui_scripts/Typewriter.cs" id="5_4gqgc"]
+[ext_resource type="Script" uid="uid://b7li5vq5hblgn" path="res://scripts/ui_scripts/AutoScroller.cs" id="6_b810x"]
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="7_iv4ku"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h4bas"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m430i"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sy66w"]
+bg_color = Color(0.122252, 0.122252, 0.122252, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sy66w"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vs6ym"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dhnb1"]
+
+[node name="Terminal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Game Logic" type="Node" parent="." node_paths=PackedStringArray("TerminalBox", "typewriter", "terminalLine")]
+script = ExtResource("1_scgte")
+TerminalBox = NodePath("../Backdrop/MarginContainer/Rows/Output/Scroller/History")
+PlayerOutScene = ExtResource("2_rfgyy")
+TorOutScene = ExtResource("3_ehye4")
+typewriter = NodePath("../Typewriter")
+terminalLine = NodePath("../Backdrop/MarginContainer/Rows/Input/HBoxContainer/Command Line")
+firstPlanet = ExtResource("4_ol1sy")
+
+[node name="Typewriter" type="Node" parent="."]
+script = ExtResource("5_4gqgc")
+
+[node name="Backdrop" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_h4bas")
+
+[node name="MarginContainer" type="MarginContainer" parent="Backdrop"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Rows" type="VBoxContainer" parent="Backdrop/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Output" type="PanelContainer" parent="Backdrop/MarginContainer/Rows"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_m430i")
+
+[node name="Scroller" type="ScrollContainer" parent="Backdrop/MarginContainer/Rows/Output"]
+layout_mode = 2
+script = ExtResource("6_b810x")
+
+[node name="History" type="VBoxContainer" parent="Backdrop/MarginContainer/Rows/Output/Scroller"]
+layout_mode = 2
+
+[node name="Input" type="PanelContainer" parent="Backdrop/MarginContainer/Rows"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sy66w")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Backdrop/MarginContainer/Rows/Input"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Caret" type="Label" parent="Backdrop/MarginContainer/Rows/Input/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("7_iv4ku")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxEmpty_sy66w")
+text = " > "
+
+[node name="Command Line" type="LineEdit" parent="Backdrop/MarginContainer/Rows/Input/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("7_iv4ku")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxEmpty_vs6ym")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dhnb1")
+keep_editing_on_text_submit = true
+caret_blink = true

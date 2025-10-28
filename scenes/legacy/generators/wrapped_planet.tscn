@@ -1,0 +1,98 @@
+[gd_scene load_steps=15 format=3 uid="uid://djdrre25ffrus"]
+
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_d0j1p"]
+[ext_resource type="Script" uid="uid://ttg5lm6ld0cg" path="res://scripts/ui_scripts/SphericalCoordinateDisplay.cs" id="2_g8kxr"]
+[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="3_64ava"]
+[ext_resource type="Script" uid="uid://ddxti2fkatf5p" path="res://scripts/ui_scripts/VersionLabel.cs" id="4_lkbiv"]
+[ext_resource type="Script" uid="uid://cny0vso0qwky7" path="res://scripts/legacy/planet_scripts/Planet.cs" id="5_7lh53"]
+[ext_resource type="Script" uid="uid://ct1un7q42k140" path="res://scripts/legacy/planet_scripts/PlanetSettings.cs" id="6_hs5js"]
+[ext_resource type="Script" uid="uid://dk31egpa72u86" path="res://scripts/legacy/VolumetricField.cs" id="7_e82kd"]
+[ext_resource type="Script" uid="uid://jtwurtked4xf" path="res://scripts/legacy/CelestialObject.cs" id="8_dvmbm"]
+[ext_resource type="Script" uid="uid://b3nibs45g1si3" path="res://scripts/legacy/generator_scripts/WrappedPlanetGenerator.cs" id="9_mw1ye"]
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="10_ntoaw"]
+[ext_resource type="Script" uid="uid://digydhqjdykx" path="res://scripts/player_scripts/OrbitalObject.cs" id="11_nqf7y"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Level" type="Node3D"]
+
+[node name="Debug Utils" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Coords" type="Label" parent="Debug Utils" node_paths=PackedStringArray("waterLayer", "planetSettings")]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_fonts/font = ExtResource("1_d0j1p")
+text = "ρ: θ: φ:"
+script = ExtResource("2_g8kxr")
+waterLayer = NodePath("../../Planet/Terrain")
+planetSettings = NodePath("../../Planet/Planet Settings")
+
+[node name="Label" type="Label" parent="Debug Utils"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -58.0
+offset_bottom = 49.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("3_64ava")
+text = "0xDEC"
+script = ExtResource("4_lkbiv")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660236, -0.43301606, 0.25000075, 0.38422763, -0.2563841, 0.886925, -0.3199567, 0.86415505, 0.38841286, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Planet" type="Node3D" parent="." node_paths=PackedStringArray("settings")]
+script = ExtResource("5_7lh53")
+settings = NodePath("Planet Settings")
+
+[node name="Planet Settings" type="Node3D" parent="Planet"]
+script = ExtResource("6_hs5js")
+renderDistance = 8
+
+[node name="Field" type="Node3D" parent="Planet/Planet Settings"]
+script = ExtResource("7_e82kd")
+
+[node name="Celestial" type="Node3D" parent="Planet"]
+script = ExtResource("8_dvmbm")
+
+[node name="Terrain" type="Node3D" parent="Planet" node_paths=PackedStringArray("settings")]
+script = ExtResource("9_mw1ye")
+settings = NodePath("../Planet Settings")
+
+[node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 256)
+script = ExtResource("10_ntoaw")
+MoveSpeed = 51.0
+MouseSensitivity = 0.2
+Camera = NodePath("Debug Camera")
+placeOnSurface = true
+
+[node name="Debug Camera" type="Camera3D" parent="Debug Cam"]
+
+[node name="Node3D" type="Node3D" parent="Debug Cam" node_paths=PackedStringArray("primaryBody")]
+script = ExtResource("11_nqf7y")
+primaryBody = NodePath("../../Planet")
+rotationDamp = 1.0

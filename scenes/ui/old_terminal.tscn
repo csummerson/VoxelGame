@@ -1,0 +1,103 @@
+[gd_scene load_steps=13 format=3 uid="uid://c21qjpxgqyciq"]
+
+[ext_resource type="Script" uid="uid://c44fxkpp0udl0" path="res://scripts/ui_scripts/GameSequence.cs" id="2_4vtf0"]
+[ext_resource type="Script" uid="uid://b7li5vq5hblgn" path="res://scripts/ui_scripts/AutoScroller.cs" id="2_dhnb1"]
+[ext_resource type="PackedScene" uid="uid://ph7fv8dfp2ow" path="res://scenes/ui/player_out.tscn" id="3_2u1pf"]
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="3_dhnb1"]
+[ext_resource type="PackedScene" uid="uid://d3l4mea74t85t" path="res://scenes/ui/tor_out.tscn" id="4_f8hcy"]
+[ext_resource type="Script" uid="uid://bai4stic0n7rg" path="res://scripts/ui_scripts/Typewriter.cs" id="5_g6hjw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h4bas"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m430i"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sy66w"]
+bg_color = Color(0.122252, 0.122252, 0.122252, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sy66w"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dhnb1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vs6ym"]
+
+[node name="Terminal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Game Logic" type="Node" parent="." node_paths=PackedStringArray("TerminalBox", "typewriter", "terminalLine")]
+script = ExtResource("2_4vtf0")
+TerminalBox = NodePath("../Backdrop/MarginContainer/Rows/Output/Scroller/History")
+PlayerOutScene = ExtResource("3_2u1pf")
+TorOutScene = ExtResource("4_f8hcy")
+typewriter = NodePath("../Typewriter")
+terminalLine = NodePath("../Backdrop/MarginContainer/Rows/Input/HBoxContainer/Command Line")
+
+[node name="Typewriter" type="Node" parent="."]
+script = ExtResource("5_g6hjw")
+
+[node name="Backdrop" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_h4bas")
+
+[node name="MarginContainer" type="MarginContainer" parent="Backdrop"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Rows" type="VBoxContainer" parent="Backdrop/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Output" type="PanelContainer" parent="Backdrop/MarginContainer/Rows"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_m430i")
+
+[node name="Scroller" type="ScrollContainer" parent="Backdrop/MarginContainer/Rows/Output"]
+layout_mode = 2
+script = ExtResource("2_dhnb1")
+
+[node name="History" type="VBoxContainer" parent="Backdrop/MarginContainer/Rows/Output/Scroller"]
+layout_mode = 2
+
+[node name="Input" type="PanelContainer" parent="Backdrop/MarginContainer/Rows"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sy66w")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Backdrop/MarginContainer/Rows/Input"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Caret" type="Label" parent="Backdrop/MarginContainer/Rows/Input/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_dhnb1")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxEmpty_sy66w")
+text = " > "
+
+[node name="Command Line" type="LineEdit" parent="Backdrop/MarginContainer/Rows/Input/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_dhnb1")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dhnb1")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_vs6ym")
+keep_editing_on_text_submit = true
+caret_blink = true

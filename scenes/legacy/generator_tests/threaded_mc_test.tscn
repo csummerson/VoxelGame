@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3 uid="uid://cqijpqjqml6qa"]
+
+[ext_resource type="Script" uid="uid://dglu4pdrx5q4h" path="res://scripts/legacy/test_generator_scripts/ThreadedTerrainGeneratorcs.cs" id="1_6bdbv"]
+[ext_resource type="PackedScene" uid="uid://cwucl3gml86um" path="res://scenes/legacy/generator_tests/mc_threaded_generator.tscn" id="2_0yacg"]
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="3_0yacg"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_top_color = Color(0.397992, 0.731253, 0.998709, 1)
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+background_color = Color(0, 0.537255, 1, 1)
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Level" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.898377, -0.238562, 0.36879, -0.0374431, 0.87818, 0.476863, -0.437625, 0.414594, -0.797869, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Generator" type="Node3D" parent="." node_paths=PackedStringArray("TargetCamera")]
+script = ExtResource("1_6bdbv")
+TargetCamera = NodePath("../Debug Cam/Debug Camera")
+ThreadedMCScene = ExtResource("2_0yacg")
+RenderDistance = 64
+
+[node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
+script = ExtResource("3_0yacg")
+MoveSpeed = 20.0
+MouseSensitivity = 0.5
+Camera = NodePath("Debug Camera")
+
+[node name="Debug Camera" type="Camera3D" parent="Debug Cam"]

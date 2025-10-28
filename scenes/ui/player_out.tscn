@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://ph7fv8dfp2ow"]
+
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_do0cq"]
+
+[node name="Player Out" type="Label"]
+custom_minimum_size = Vector2(1000, 0)
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("1_do0cq")
+theme_override_font_sizes/font_size = 20
+text = "  >  User"
+autowrap_mode = 3

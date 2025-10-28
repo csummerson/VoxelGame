@@ -1,0 +1,91 @@
+[gd_scene load_steps=14 format=3 uid="uid://l5fh7qqldnnp"]
+
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_xw23w"]
+[ext_resource type="Script" uid="uid://ttg5lm6ld0cg" path="res://scripts/ui_scripts/SphericalCoordinateDisplay.cs" id="2_ykni2"]
+[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="3_qjevc"]
+[ext_resource type="Script" uid="uid://ddxti2fkatf5p" path="res://scripts/ui_scripts/VersionLabel.cs" id="4_y002a"]
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="5_a2tmt"]
+[ext_resource type="Script" uid="uid://bvqblrchqxt3c" path="res://scripts/final_generators/RaySphere.cs" id="6_ykni2"]
+[ext_resource type="Script" uid="uid://cocedn1olhi73" path="res://scripts/final_generators/FlatController.cs" id="7_xw23w"]
+[ext_resource type="Material" uid="uid://b6taxos2sp26u" path="res://materials/other/sphere.tres" id="8_qjevc"]
+[ext_resource type="Material" uid="uid://cfdyrefmd6mfq" path="res://materials/other/water.tres" id="8_y002a"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_w7e5s"]
+sky_material = SubResource("ProceduralSkyMaterial_ie2ng")
+
+[sub_resource type="Environment" id="Environment_u124o"]
+background_mode = 2
+sky = SubResource("Sky_w7e5s")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_4ytmu"]
+size = Vector2(10, 10)
+
+[node name="Level" type="Node3D"]
+
+[node name="Debug Utils" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Coords" type="Label" parent="Debug Utils"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_fonts/font = ExtResource("1_xw23w")
+text = "ρ: θ: φ:"
+script = ExtResource("2_ykni2")
+
+[node name="Label" type="Label" parent="Debug Utils"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -58.0
+offset_bottom = 49.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("3_qjevc")
+text = "0xDEC"
+horizontal_alignment = 2
+script = ExtResource("4_y002a")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u124o")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660236, -0.43301606, 0.25000075, 0.38422763, -0.2563841, 0.886925, -0.3199567, 0.86415505, 0.38841286, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
+script = ExtResource("5_a2tmt")
+MoveSpeed = 25.0
+MouseSensitivity = 0.2
+Camera = NodePath("Debug Camera")
+
+[node name="Debug Camera" type="Camera3D" parent="Debug Cam" node_paths=PackedStringArray("sphere")]
+script = ExtResource("6_ykni2")
+sphere = NodePath("../../Ima Sphere")
+length = 10
+
+[node name="World" type="Node3D" parent="." node_paths=PackedStringArray("playerNode")]
+script = ExtResource("7_xw23w")
+playerNode = NodePath("../Debug Cam/Debug Camera")
+lodThresholds = PackedInt32Array(4, 8, 16, 32, 64, 128)
+maxChunkThreads = 6
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="World"]
+transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 0, 58, 0)
+material_override = ExtResource("8_y002a")
+mesh = SubResource("PlaneMesh_4ytmu")
+
+[node name="Ima Sphere" type="CSGSphere3D" parent="."]
+material_override = ExtResource("8_qjevc")
