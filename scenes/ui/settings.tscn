@@ -1,0 +1,215 @@
+[gd_scene load_steps=16 format=3 uid="uid://drrrtt5kaj1f2"]
+
+[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="1_8wfqe"]
+[ext_resource type="Script" uid="uid://blpp6gex1h7hu" path="res://scripts/ui_scripts/SettingsManager.cs" id="1_ptynm"]
+[ext_resource type="Script" uid="uid://bf2gl00lmq8ld" path="res://scripts/ui_scripts/SliderValueTracker.cs" id="3_h175o"]
+[ext_resource type="Script" uid="uid://dvklt37ft4nee" path="res://scenes/ui/MouseSensitivitySlider.cs" id="3_mn4ci"]
+[ext_resource type="Script" uid="uid://b40osmdyd2jhi" path="res://scripts/ui_scripts/ViewDistanceSlider.cs" id="3_ob3hf"]
+[ext_resource type="Script" uid="uid://iphhvknq81sx" path="res://scenes/ui/ThreadSlider.cs" id="5_d4m38"]
+[ext_resource type="Script" uid="uid://kfqg5hreaw1q" path="res://scripts/ui_scripts/TerminateButton.cs" id="5_ncfhn"]
+[ext_resource type="Script" uid="uid://bdu8ghgi0sj21" path="res://scenes/ui/SurfaceNetCheckbox.cs" id="6_mn4ci"]
+[ext_resource type="Script" uid="uid://m7jgw6p1hh4l" path="res://scenes/ui/FullScreenButton.cs" id="7_d4m38"]
+[ext_resource type="Script" uid="uid://ci31kmhysl6cl" path="res://scenes/ui/SeedInput.cs" id="8_d4m38"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7pacj"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_8wfqe"]
+font = ExtResource("1_8wfqe")
+font_size = 50
+font_color = Color(0, 1, 0, 1)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_8wfqe"]
+color = Color(0, 1, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_h175o"]
+font = ExtResource("1_8wfqe")
+font_color = Color(0, 1, 0, 1)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_7pacj"]
+color = Color(0, 1, 0, 1)
+
+[node name="Settings" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ptynm")
+
+[node name="Backdrop" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_7pacj")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 200
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 200
+theme_override_constants/margin_bottom = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Pause Label" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "<PROCESS SUSPENDED>"
+label_settings = SubResource("LabelSettings_8wfqe")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 64
+theme_override_styles/separator = SubResource("StyleBoxLine_8wfqe")
+
+[node name="Mouse Sens Container" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Mouse Sensitivity" type="Label" parent="MarginContainer/VBoxContainer/Mouse Sens Container"]
+layout_mode = 2
+text = "Mouse sensitivity  "
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="Sensitivity" type="HSlider" parent="MarginContainer/VBoxContainer/Mouse Sens Container"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 1.0
+max_value = 99.0
+value = 50.0
+script = ExtResource("3_mn4ci")
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/Mouse Sens Container" node_paths=PackedStringArray("sliderToTrack")]
+layout_mode = 2
+text = "   00"
+label_settings = SubResource("LabelSettings_h175o")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("3_h175o")
+sliderToTrack = NodePath("../Sensitivity")
+
+[node name="Active Dist Container" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Active Dist Container"]
+layout_mode = 2
+text = "View distance      "
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="Slider" type="HSlider" parent="MarginContainer/VBoxContainer/Active Dist Container"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 1.0
+max_value = 32.0
+value = 12.0
+script = ExtResource("3_ob3hf")
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/Active Dist Container" node_paths=PackedStringArray("sliderToTrack")]
+layout_mode = 2
+text = "   00"
+label_settings = SubResource("LabelSettings_h175o")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("3_h175o")
+sliderToTrack = NodePath("../Slider")
+
+[node name="Thread Container" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Thread Container"]
+layout_mode = 2
+text = "Chunk threads      "
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="Slider" type="HSlider" parent="MarginContainer/VBoxContainer/Thread Container"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 1.0
+max_value = 16.0
+value = 6.0
+script = ExtResource("5_d4m38")
+
+[node name="Thread Setter" type="Node" parent="MarginContainer/VBoxContainer/Thread Container/Slider"]
+
+[node name="Value" type="Label" parent="MarginContainer/VBoxContainer/Thread Container" node_paths=PackedStringArray("sliderToTrack")]
+layout_mode = 2
+text = "   00"
+label_settings = SubResource("LabelSettings_h175o")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("3_h175o")
+sliderToTrack = NodePath("../Slider")
+
+[node name="Toggles Container" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Mouse Sensitivity" type="Label" parent="MarginContainer/VBoxContainer/Toggles Container"]
+layout_mode = 2
+text = "Surface nets"
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="CheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/Toggles Container"]
+layout_mode = 2
+button_pressed = true
+script = ExtResource("6_mn4ci")
+
+[node name="Mouse Sensitivity2" type="Label" parent="MarginContainer/VBoxContainer/Toggles Container"]
+layout_mode = 2
+text = "       Full screen"
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="CheckBox2" type="CheckBox" parent="MarginContainer/VBoxContainer/Toggles Container"]
+layout_mode = 2
+button_pressed = true
+script = ExtResource("7_d4m38")
+
+[node name="Seed Container" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/Seed Container"]
+layout_mode = 2
+text = "Seed: "
+label_settings = SubResource("LabelSettings_h175o")
+
+[node name="Seed" type="LineEdit" parent="MarginContainer/VBoxContainer/Seed Container"]
+custom_minimum_size = Vector2(125, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_colors/font_placeholder_color = Color(0, 1, 0, 0.6)
+placeholder_text = "0"
+alignment = 1
+max_length = 10
+script = ExtResource("8_d4m38")
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 64
+theme_override_styles/separator = SubResource("StyleBoxLine_7pacj")
+
+[node name="Terminate Button" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("1_8wfqe")
+theme_override_font_sizes/font_size = 40
+text = " TERMINATE "
+script = ExtResource("5_ncfhn")

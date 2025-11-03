@@ -24,6 +24,7 @@ bg_color = Color(0.122252, 0.122252, 0.122252, 1)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dhnb1"]
 
 [node name="Terminal" type="Control"]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,7 +39,7 @@ PlayerOutScene = ExtResource("3_2u1pf")
 TorOutScene = ExtResource("4_f8hcy")
 typewriter = NodePath("../Typewriter")
 terminalLine = NodePath("../Backdrop/MarginContainer/Rows/Input/HBoxContainer/Command Line")
-firstPlanet = ExtResource("4_tdyej")
+level = ExtResource("4_tdyej")
 
 [node name="Typewriter" type="Node" parent="."]
 script = ExtResource("5_g6hjw")

@@ -1,35 +1,41 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 public partial class ChunkMesher 
 {
-    private bool surfaceNets = true;
+    private bool useSurfaceNets = true;
     private int resolution = 1;
     private bool loadCollider = false;
-    ChunkData chunkData;
+    private float[,,] samples;
+    private byte[,,] materials;
 
-    public ChunkMesher(ChunkData data, int resolution, bool loadCollider)
+    private ThreadLocal<Vector3[]> edgeBuffer = new ThreadLocal<Vector3[]>(() => new Vector3[12]);
+
+    public ChunkMesher(int resolution, bool loadCollider, bool useSurfaceNets)
     {
-        this.chunkData = data;
         this.resolution = resolution;
         this.loadCollider = loadCollider;
+        this.useSurfaceNets = useSurfaceNets;
     }
 
-    public ArrayMeshData GenerateMesh()
+    public ArrayMeshData GenerateMesh(ChunkData data)
     {
+        samples = data.samples;
+        materials = data.materials;
+        
+        //Stopwatch stopwatch = Stopwatch.StartNew();
+
         int chunkWidth = WorldGenUtility.chunkSize;
         int chunkHeight = WorldGenUtility.chunkHeight;
 
-        ArrayMeshData meshData = new ArrayMeshData(chunkWidth + 2, chunkHeight + 2, chunkWidth + 2);
-
-        // Add + 2 to make skirts
         int pointWidth = chunkWidth + 1;
         int pointHeight = chunkHeight + 0;
 
-        // Add + 1 to make skirts
-        int faceWidth = chunkWidth + 1;
-        int faceHeight = chunkHeight + 0;    
+        ArrayMeshData meshData = new ArrayMeshData(pointWidth, pointHeight, pointWidth);
 
         // Vertext placement
         for (int x = 0; x < pointWidth; x++)
@@ -39,22 +45,27 @@ public partial class ChunkMesher
                 for (int z = 0; z < pointWidth; z++)
                 {
                     Vector3 vertex = FindVertex(new Vector3I(x, y, z));
-                    meshData.vertsList.Add(vertex);
-                    meshData.vertIndicesAr[x, y, z] = meshData.vertsList.Count - 1;
+                    int index = meshData.LinearIndex(x, y, z);
+                    meshData.vertsList[index] = vertex;
+                    meshData.vertIndicesAr[x, y, z] = index;
                 }
             }
         }
 
         // Mesh construction
-        for (int x = 1; x < faceWidth; x++)
+        for (int x = 1; x < pointWidth; x++)
         {
-            for (int y = 1; y < faceHeight; y++)
+            for (int y = 1; y < pointHeight; y++)
             {
-                for (int z = 1; z < faceWidth; z++)
+                for (int z = 1; z < pointWidth; z++)
                 {
+                    // Exit out
+                    int index = meshData.LinearIndex(x, y, z);
+                    if (float.IsNaN(meshData.vertsList[index].X)) continue;
+                    
                     // X faces	
-                    bool solidX1 = chunkData.samples[x + 0, y, z] > 0;
-                    bool solidX2 = chunkData.samples[x + 1, y, z] > 0;
+                    bool solidX1 = samples[x, y, z] > 0;
+                    bool solidX2 = samples[x + 1, y, z] > 0;
                     if (solidX1 != solidX2)
                     {
                         int v0 = meshData.vertIndicesAr[x, y - 1, z - 1];
@@ -62,28 +73,27 @@ public partial class ChunkMesher
                         int v2 = meshData.vertIndicesAr[x, y - 0, z - 0];
                         int v3 = meshData.vertIndicesAr[x, y - 1, z - 0];
 
-                        byte mat = solidX2 ? chunkData.materials[x + 1, y, z] : chunkData.materials[x, y, z];
+                        byte mat = solidX2 ? materials[x + 1, y, z] : materials[x, y, z];
                         AddQuad(v0, v1, v2, v3, solidX2, meshData, mat);
                     }
 
                     // Y faces
-                    bool solidY1 = chunkData.samples[x, y + 0, z] > 0;
-                    bool solidY2 = chunkData.samples[x, y + 1, z] > 0;
-
+                    bool solidY1 = samples[x, y, z] > 0;
+                    bool solidY2 = samples[x, y + 1, z] > 0;
                     if (solidY1 != solidY2)
                     {
                         int v0 = meshData.vertIndicesAr[x - 1, y, z - 1];
-                        int v1 = meshData.vertIndicesAr[x - 0, y, z - 1];
+                        int v1 = meshData.vertIndicesAr[x - 1, y, z - 0];
                         int v2 = meshData.vertIndicesAr[x - 0, y, z - 0];
-                        int v3 = meshData.vertIndicesAr[x - 1, y, z - 0];
+                        int v3 = meshData.vertIndicesAr[x - 0, y, z - 1];
 
-                        byte mat = solidY2 ? chunkData.materials[x, y + 1, z] : chunkData.materials[x, y, z];
-                        AddQuad(v0, v1, v2, v3, !solidY2, meshData, mat);
+                        byte mat = solidY2 ? materials[x, y + 1, z] : materials[x, y, z];
+                        AddQuad(v0, v1, v2, v3, solidY2, meshData, mat);
                     }
 
                     // Z faces
-                    bool solidZ1 = chunkData.samples[x, y, z + 0] > 0;
-                    bool solidZ2 = chunkData.samples[x, y, z + 1] > 0;
+                    bool solidZ1 = samples[x, y, z] > 0;
+                    bool solidZ2 = samples[x, y, z + 1] > 0;
                     if (solidZ1 != solidZ2)
                     {
                         int v0 = meshData.vertIndicesAr[x - 1, y - 1, z];
@@ -91,12 +101,15 @@ public partial class ChunkMesher
                         int v2 = meshData.vertIndicesAr[x - 0, y - 0, z];
                         int v3 = meshData.vertIndicesAr[x - 1, y - 0, z];
 
-                        byte mat = solidZ2 ? chunkData.materials[x, y, z + 1] : chunkData.materials[x, y, z];
+                        byte mat = solidZ2 ? materials[x, y, z + 1] : materials[x, y, z];
                         AddQuad(v0, v1, v2, v3, solidZ2, meshData, mat);
                     }
                 }
             }
         }
+
+        //stopwatch.Stop();
+        //GD.Print("GenerateMesh took: " + stopwatch.ElapsedMilliseconds + "ms");
 
         return meshData;
     }
@@ -135,9 +148,9 @@ public partial class ChunkMesher
 		}
 
         Vector3 normal = (v2 - v0).Cross(v1 - v0).Normalized();
-        meshData.normals.Add(normal);
-        meshData.normals.Add(normal);
-        meshData.normals.Add(normal);
+        meshData.vertexNormals.Add(normal);
+        meshData.vertexNormals.Add(normal);
+        meshData.vertexNormals.Add(normal);
 
         meshData.indices.Add(startIndex);
         meshData.indices.Add(startIndex + 1);
@@ -154,12 +167,13 @@ public partial class ChunkMesher
 
     private Vector3 FindVertex(Vector3I pos)
     {
-        if (!surfaceNets)
+        if (!useSurfaceNets)
         {
             return (pos + Vector3.One * 0.5f) * resolution;
         }
 
-        List<Vector3> positions = new List<Vector3>();
+        Vector3[] edgeHits = edgeBuffer.Value;
+        int count = 0;
 
         for (int i = 0; i < 12; i++)
         {
@@ -169,34 +183,43 @@ public partial class ChunkMesher
             var corn1 = WorldGenUtility.cornerOffsets[edge1];
             var corn2 = WorldGenUtility.cornerOffsets[edge2];
 
-            Vector3 a = pos + corn1;
-            Vector3 b = pos + corn2;
+            int ax = pos.X + (int)corn1.X;
+            int ay = pos.Y + (int)corn1.Y;
+            int az = pos.Z + (int)corn1.Z;
 
-            float valA = chunkData.samples[(int)a.X, (int)a.Y, (int)a.Z];
-            float valB = chunkData.samples[(int)b.X, (int)b.Y, (int)b.Z];
+            int bx = pos.X + (int)corn2.X;
+            int by = pos.Y + (int)corn2.Y;
+            int bz = pos.Z + (int)corn2.Z;
+
+            float valA = samples[ax, ay, az];
+            float valB = samples[bx, by, bz];
 
             if ((valA > 0) != (valB > 0))
             {
-                Vector3 posInter = a + (b - a) * (valA / (valA - valB)); // linear interp
-                positions.Add(posInter * resolution);
+                Vector3 a = new Vector3(ax, ay, az);
+                Vector3 b = new Vector3(bx, by, bz);
+                Vector3 posInter = a + (b - a) * (valA / (valA - valB));
+                edgeHits[count++] = posInter * resolution;
             }
         }
 
-        if (positions.Count == 0)
+        if (count == 0)
         {
-            return (pos + Vector3.One * 0.5f) * resolution;
+            return new Vector3(float.NaN, float.NaN, float.NaN); // lets the mesher exit out early. Saved about 2 seconds at 16 chunks of render distance!
         }
-        return Centroid(positions);
+
+        return Centroid(edgeHits, count);
     }
     
-    Vector3 Centroid(List<Vector3> positions)
+    Vector3 Centroid(Vector3[] positions, int count)
     {
         Vector3 sum = Vector3.Zero;
 
-        foreach (Vector3 p in positions) {
-            sum += p;
+        for (int i = 0; i < count; i++)
+        {
+            sum += positions[i];
         }
 
-        return sum / positions.Count;
+        return sum / count;
     }
 }

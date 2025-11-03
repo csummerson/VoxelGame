@@ -19,11 +19,11 @@ public partial class PlayerManager : Node3D
 
 	public override void _EnterTree()
 	{
-		if (false)
-		{
-			SetMultiplayerAuthority(int.Parse(Name.ToString()));
-			camera.Current = IsMultiplayerAuthority();
-		}
+		// if (false)
+		// {
+		// 	SetMultiplayerAuthority(int.Parse(Name.ToString()));
+		// 	camera.Current = IsMultiplayerAuthority();
+		// }
 		
 		int id = GetMultiplayerAuthority();
 

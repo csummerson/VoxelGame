@@ -1,14 +1,15 @@
 [gd_scene load_steps=14 format=3 uid="uid://l5fh7qqldnnp"]
 
-[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_xw23w"]
-[ext_resource type="Script" uid="uid://ttg5lm6ld0cg" path="res://scripts/ui_scripts/SphericalCoordinateDisplay.cs" id="2_ykni2"]
-[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="3_qjevc"]
-[ext_resource type="Script" uid="uid://ddxti2fkatf5p" path="res://scripts/ui_scripts/VersionLabel.cs" id="4_y002a"]
-[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="5_a2tmt"]
-[ext_resource type="Script" uid="uid://bvqblrchqxt3c" path="res://scripts/final_generators/RaySphere.cs" id="6_ykni2"]
-[ext_resource type="Script" uid="uid://cocedn1olhi73" path="res://scripts/final_generators/FlatController.cs" id="7_xw23w"]
-[ext_resource type="Material" uid="uid://b6taxos2sp26u" path="res://materials/other/sphere.tres" id="8_qjevc"]
-[ext_resource type="Material" uid="uid://cfdyrefmd6mfq" path="res://materials/other/water.tres" id="8_y002a"]
+[ext_resource type="Script" uid="uid://dcto66trg4rt" path="res://scripts/ui_scripts/UtilsController.cs" id="1_hknqo"]
+[ext_resource type="FontFile" uid="uid://cx4itb0mvu0em" path="res://fonts/RobotoMono-Regular.ttf" id="1_jy8ti"]
+[ext_resource type="Script" uid="uid://ttg5lm6ld0cg" path="res://scripts/ui_scripts/SphericalCoordinateDisplay.cs" id="2_hknqo"]
+[ext_resource type="FontFile" uid="uid://lyvcfdn7evxc" path="res://fonts/RobotoMono-Bold.ttf" id="3_7jlic"]
+[ext_resource type="Script" uid="uid://ddxti2fkatf5p" path="res://scripts/ui_scripts/VersionLabel.cs" id="4_0pryn"]
+[ext_resource type="Script" uid="uid://iclm3q47lood" path="res://scripts/player_scripts/DebugCamera.cs" id="5_fgxar"]
+[ext_resource type="Script" uid="uid://bvqblrchqxt3c" path="res://scripts/final_generators/RaySphere.cs" id="6_kip6y"]
+[ext_resource type="Script" uid="uid://cocedn1olhi73" path="res://scripts/final_generators/FlatController.cs" id="7_was1v"]
+[ext_resource type="Material" uid="uid://b6taxos2sp26u" path="res://materials/other/sphere.tres" id="9_1yyoe"]
+[ext_resource type="PackedScene" uid="uid://drrrtt5kaj1f2" path="res://scenes/ui/settings.tscn" id="10_y002a"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ie2ng"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -22,9 +23,15 @@ background_mode = 2
 sky = SubResource("Sky_w7e5s")
 tonemap_mode = 2
 glow_enabled = true
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_4ytmu"]
-size = Vector2(10, 10)
+fog_mode = 1
+fog_light_color = Color(1, 1, 1, 1)
+fog_density = 1.0
+fog_sky_affect = 0.0
+fog_height = -1024.0
+fog_depth_begin = 400.0
+fog_depth_end = 512.0
+volumetric_fog_length = 512.45
+volumetric_fog_sky_affect = 0.0
 
 [node name="Level" type="Node3D"]
 
@@ -35,14 +42,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_hknqo")
 
 [node name="Coords" type="Label" parent="Debug Utils"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-theme_override_fonts/font = ExtResource("1_xw23w")
+theme_override_fonts/font = ExtResource("1_jy8ti")
 text = "ρ: θ: φ:"
-script = ExtResource("2_ykni2")
+script = ExtResource("2_hknqo")
 
 [node name="Label" type="Label" parent="Debug Utils"]
 layout_mode = 1
@@ -52,10 +60,28 @@ anchor_right = 1.0
 offset_left = -58.0
 offset_bottom = 49.0
 grow_horizontal = 0
-theme_override_fonts/font = ExtResource("3_qjevc")
+theme_override_fonts/font = ExtResource("3_7jlic")
 text = "0xDEC"
 horizontal_alignment = 2
-script = ExtResource("4_y002a")
+script = ExtResource("4_0pryn")
+
+[node name="Point" type="Panel" parent="Debug Utils"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.5
+offset_top = -2.5
+offset_right = 2.5
+offset_bottom = 2.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Settings" parent="." node_paths=PackedStringArray("flatController") instance=ExtResource("10_y002a")]
+visible = false
+flatController = NodePath("../World")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_u124o")
@@ -65,27 +91,26 @@ transform = Transform3D(-0.8660236, -0.43301606, 0.25000075, 0.38422763, -0.2563
 shadow_enabled = true
 
 [node name="Debug Cam" type="Node3D" parent="." node_paths=PackedStringArray("Camera")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, 0)
-script = ExtResource("5_a2tmt")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 200, 0)
+script = ExtResource("5_fgxar")
 MoveSpeed = 25.0
 MouseSensitivity = 0.2
 Camera = NodePath("Debug Camera")
 
 [node name="Debug Camera" type="Camera3D" parent="Debug Cam" node_paths=PackedStringArray("sphere")]
-script = ExtResource("6_ykni2")
+size = 3
+far = 100000.0
+script = ExtResource("6_kip6y")
 sphere = NodePath("../../Ima Sphere")
-length = 10
+length = 20
+size = 3
 
 [node name="World" type="Node3D" parent="." node_paths=PackedStringArray("playerNode")]
-script = ExtResource("7_xw23w")
-playerNode = NodePath("../Debug Cam/Debug Camera")
-lodThresholds = PackedInt32Array(4, 8, 16, 32, 64, 128)
-maxChunkThreads = 6
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="World"]
-transform = Transform3D(1000, 0, 0, 0, 1000, 0, 0, 0, 1000, 0, 58, 0)
-material_override = ExtResource("8_y002a")
-mesh = SubResource("PlaneMesh_4ytmu")
+script = ExtResource("7_was1v")
+playerNode = NodePath("../Debug Cam")
+lodThresholds = PackedInt32Array(16)
+maxChunkThreads = 8
 
 [node name="Ima Sphere" type="CSGSphere3D" parent="."]
-material_override = ExtResource("8_qjevc")
+visible = false
+material_override = ExtResource("9_1yyoe")

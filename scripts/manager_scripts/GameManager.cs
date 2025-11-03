@@ -14,6 +14,8 @@ public partial class GameManager : Node
 	public string chunkInfo = "";
 	public string worldSeed = "";
 
+	public bool canPause = true;
+
 	public enum WorldModel
 	{
 		Flat,
@@ -22,6 +24,8 @@ public partial class GameManager : Node
 
 	public override void _EnterTree()
 	{
+		Input.MouseMode = Input.MouseModeEnum.Captured;
+
 		if (Instance == null)
 		{
 			Instance = this;
@@ -32,6 +36,62 @@ public partial class GameManager : Node
 			QueueFree();
 		}
 	}
+
+    public override void _Ready()
+    {
+		ProcessMode = ProcessModeEnum.Always;
+    }
+
+	public override void _Input(InputEvent @event)
+	{
+		if (@event.IsActionPressed("ui_cancel"))
+		{
+			if (canPause) TogglePause();
+		}
+
+		if (@event.IsActionPressed("debug_draw"))
+		{
+			ToggleDebugDraw();
+		}
+	}
+
+	private bool isPaused = false;
+	private void TogglePause()
+	{
+		isPaused = !isPaused;
+		GetTree().Paused = isPaused;
+
+		if (!isPaused)
+		{
+			Input.MouseMode = Input.MouseModeEnum.Captured;
+		}
+		else
+		{
+			Input.MouseMode = Input.MouseModeEnum.Visible;
+		}
+	}
+
+	private bool isDebugDrawing = false;
+	private void ToggleDebugDraw()
+	{
+		isDebugDrawing = !isDebugDrawing;
+
+		if (!isDebugDrawing)
+		{
+			GetViewport().DebugDraw = Viewport.DebugDrawEnum.Disabled;
+		}
+		else
+		{
+			GetViewport().DebugDraw = Viewport.DebugDrawEnum.Wireframe;
+		}
+	}
+
+	public void QuitGame()
+	{
+		GameSettings.Instance.Save();
+		SaveManager.Instance.SaveData();
+		GetTree().Quit();
+    }
 
 	public void StartSinglePlayer()
 	{
@@ -47,7 +107,7 @@ public partial class GameManager : Node
     {
 		if (what == NotificationWMCloseRequest)
 		{
-			GD.Print("Game is quitting.");
+			GD.Print("Process terminating...");
 			SaveManager.Instance.SaveData();
 		}
     }

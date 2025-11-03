@@ -1,89 +1,95 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class SaveManager : Node
 {
-    public static SaveManager Instance { get; private set;}
+    public static SaveManager Instance { get; private set; }
+    private ConfigFile loadedConfig;
 
     public override void _EnterTree()
     {
         if (Instance == null)
-		{
-			Instance = this;
-			SetProcess(false);
-		}
-		else
-		{
-			QueueFree();
-		}
+        {
+            Instance = this;
+            SetProcess(false);
+            //LoadData();
+        }
+        else
+        {
+            QueueFree();
+        }
     }
 
-    [Export] public string savePath;
+    // The Settings!
+    [Export] public string savePath = "user://settings.cfg";
+    private Dictionary<string, ISaveable> saveables = new();
 
-
-    /// <summary>
-    /// Loads save data from disk.
-    /// </summary>
-    /// <returns>
-    /// Returns:
-    /// <list type="bullet">
-    /// <item><description><b>0</b> - Error loading file</description></item>
-    /// <item><description><b>1</b> - Load file not found </description></item>
-    /// <item><description><b>2</b> - Load file outdated</description></item>
-    /// <item><description><b>3</b> - Load successful</description></item>
-    /// </list> 
-    /// </returns>
-    public int LoadData()
+    public void RegisterSaveable(ISaveable obj)
     {
-        if (!FileAccess.FileExists(savePath))
+        if (!saveables.ContainsKey(obj.SaveID))
         {
-            GD.Print("No save file found.");
-            return 1;
+            saveables.Add(obj.SaveID, obj);
+        }
+    }
+
+    public void UnregisterSaveable(ISaveable obj)
+    {
+        if (saveables.ContainsKey(obj.SaveID))
+        {
+            saveables.Remove(obj.SaveID);
+        }
+    }
+
+    public void LoadData()
+    {
+        loadedConfig = new ConfigFile();
+        if (loadedConfig.Load(savePath) != Error.Ok)
+        {
+            loadedConfig = null;
+            return;
+        }
+    }
+
+    public Dictionary<string, Variant> GetDataFor(string id)
+    {
+        if (loadedConfig == null || !loadedConfig.HasSection(id))
+        {
+            return null;
         }
 
-        ConfigFile config = new ConfigFile();
-        Error err = config.Load(savePath);
-
-        if (err != Error.Ok)
+        var dict = new Dictionary<string, Variant>();
+        foreach (string key in loadedConfig.GetSectionKeys(id))
         {
-            GD.Print("Error loading save file.");
-            return 0;
+            dict[key] = loadedConfig.GetValue(id, key);
         }
 
-        int outVal = 3;
-        // Load vals
-        string version_string = (String)config.GetValue("Version", "version_string");
-        if (version_string != (string)ProjectSettings.GetSetting("application/config/version"))
-        {
-            outVal = 2;
-        }
-
-        // Generator settings
-        GameManager ins = GameManager.Instance;
-        ins.MODEL = (int)config.GetValue("Generator", "MODEL");
-        ins.RD = (int)config.GetValue("Generator", "RD");
-        ins.SD = (int)config.GetValue("Generator", "SD");
-        ins.SIZE = (int)config.GetValue("Generator", "SIZE");
-
-        return outVal;
+        return dict;
     }
 
     public void SaveData()
     {
         ConfigFile config = new ConfigFile();
 
-        string version = (string)ProjectSettings.GetSetting("application/config/version");
+        foreach (var pair in saveables)
+        {
+            string id = pair.Key;
+            var data = pair.Value.Save();
 
-        // Version things
-        config.SetValue("Version", "version_string", version);
-
-        // Generator settings
-        GameManager ins = GameManager.Instance;
-        config.SetValue("Generator", "MODEL", ins.MODEL);
-        config.SetValue("Generator", "RD", ins.RD);
-        config.SetValue("Generator", "SD", ins.SD);
-        config.SetValue("Generator", "SIZE", ins.SIZE);
+            foreach (var kv in data)
+            {
+                config.SetValue(id, kv.Key, kv.Value);
+            }
+        }
 
         config.Save(savePath);
+        GD.Print("Settings saved to " + savePath);
     }
+}
+
+public interface ISaveable
+{
+    string SaveID { get; }
+    Dictionary<string, Variant> Save();
+    void Load(Dictionary<string, Variant> data);
 }

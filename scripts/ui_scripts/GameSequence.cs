@@ -86,8 +86,10 @@ public partial class GameSequence : Node
 
         await AddLabelTimer(TorOutScene, $"Connection succeeded. Press z at any time to return to this window.");
         await AddLabelTimer(TorOutScene, $"Loading...", 0.2f);
+        GameSettings.Instance.hasSeenTerminal = true;
+
         DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
-        GameManager.Instance.hasSeenTerminal = true;
+        
 
         Input.MouseMode = Input.MouseModeEnum.Captured;
         GetParent().QueueFree();

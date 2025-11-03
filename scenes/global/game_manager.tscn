@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3 uid="uid://dhk6apnev6822"]
+[gd_scene load_steps=5 format=3 uid="uid://dhk6apnev6822"]
 
 [ext_resource type="Script" uid="uid://cqprvprl34p62" path="res://scripts/manager_scripts/GameManager.cs" id="1_hwd4i"]
+[ext_resource type="Script" uid="uid://brlpg3n82h3sn" path="res://scripts/manager_scripts/GameSettings.cs" id="2_l4rns"]
+[ext_resource type="Script" uid="uid://88y1g16iklo8" path="res://scripts/manager_scripts/NetworkManager.cs" id="3_ko33h"]
+[ext_resource type="Script" uid="uid://c0ymnic0vfwdb" path="res://scripts/manager_scripts/SaveManager.cs" id="4_cmnke"]
 
 [node name="Game Manager" type="Node"]
 script = ExtResource("1_hwd4i")
+
+[node name="Game Settings" type="Node" parent="."]
+script = ExtResource("2_l4rns")
+
+[node name="Network Manager" type="Node" parent="."]
+script = ExtResource("3_ko33h")
+
+[node name="Save Manager" type="Node" parent="."]
+script = ExtResource("4_cmnke")

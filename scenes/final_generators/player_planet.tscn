@@ -91,7 +91,7 @@ offset_left = -58.0
 offset_bottom = 49.0
 grow_horizontal = 0
 theme_override_fonts/font = ExtResource("3_l5m2c")
-text = "Vox"
+text = "0xDEC"
 script = ExtResource("4_7t0xh")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

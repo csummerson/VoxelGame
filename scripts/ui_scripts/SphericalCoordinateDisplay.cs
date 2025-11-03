@@ -4,9 +4,7 @@ using System;
 public partial class SphericalCoordinateDisplay : Label
 {
 	[Export] Camera3D cam;
-	[Export] int seaLevel = 64;
-	[Export] WrappedPlanetGenerator waterLayer;
-	[Export] PlanetSettings planetSettings;
+	[Export] int seaLevel = 0;
 
 	public override void _Ready()
 	{
@@ -65,7 +63,7 @@ public partial class SphericalCoordinateDisplay : Label
 		string gps = $"GPS: {latitude} {longitude} {alt:F2}m";
 
 		string chunk = "Chunk: " + GameManager.Instance.chunkInfo;
-		string seed = "Seed: " + GameManager.Instance.worldSeed;
+		string seed = "Seed: " + GameSettings.Instance.seed;
 
 		Text = worldCoord + "\n" + gps + "\n" + sphericalCoord + "\n" + chunk + "\n" + seed;
 

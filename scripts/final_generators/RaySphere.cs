@@ -10,7 +10,7 @@ public partial class RaySphere : Camera3D
 
     public override void _Ready()
     {
-        sphere.Scale = Vector3.One * size;
+        sphere.Scale = Vector3.One * size * size;
     }
 
     public override void _PhysicsProcess(double delta)
@@ -29,6 +29,7 @@ public partial class RaySphere : Camera3D
         {
             spawnPoint = (Vector3)result["position"];
             brushPoint = spawnPoint;
+            //sphere.Visible = true;
 
             if (Input.IsActionJustPressed("mouse_left"))
             {
@@ -40,6 +41,7 @@ public partial class RaySphere : Camera3D
                 if (parent is ChunkManager chunkManager)
                 {
                     chunkManager.DeformGlobal(brushPoint, size, -10);
+                    //GD.Print("Attempted to deform something.");
                 }
             }
             else if (Input.IsActionJustPressed("mouse_right"))
@@ -52,6 +54,7 @@ public partial class RaySphere : Camera3D
                 if (parent is ChunkManager chunkManager)
                 {
                     chunkManager.DeformGlobal(brushPoint, size, 10);
+                    //GD.Print("Attempted to form something.");
                 }
             }
         }
@@ -59,6 +62,7 @@ public partial class RaySphere : Camera3D
         {
             spawnPoint = Vector3.Zero;
             brushPoint = Vector3.Zero;
+            sphere.Visible = false;
         }
 
         sphere.GlobalPosition = spawnPoint;

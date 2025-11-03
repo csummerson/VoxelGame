@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 public partial class ChunkManager : Node3D
 {
@@ -12,30 +13,36 @@ public partial class ChunkManager : Node3D
 
     public event Action<ChunkManager> OnChunkLoaded;
 
-    public ChunkManager(int resolution, bool loadCollider)
+    public bool isLoaded = false;
+
+    public bool useSurfaceNets;
+
+    public ChunkManager(int resolution, bool loadCollider, bool useSurfaceNets)
     {
         this.resolution = resolution;
         this.loadCollider = loadCollider;
+        this.useSurfaceNets = useSurfaceNets;
     }
 
-    public async void StartLoadingAsync(TerrainField terrainField)
+    public async void CreateChunkAsync(TerrainField terrainField)
     {
-        Vector3 positionSnapshot = Vector3.Zero;
-        
+        Vector3 positionSnapshot;
+
         try {
             positionSnapshot = Position;
+            CreateWaterMesh();
         } catch (ObjectDisposedException) {
             NotifyLoaded();
             return;
         }
 
-        var meshData = await Task.Run(() =>
+        ArrayMeshData meshData = await Task.Run(() =>
         {
             chunkData = new ChunkData(terrainField);
             chunkData.GenerateData(positionSnapshot, resolution);
 
-            chunkMesher = new ChunkMesher(chunkData, resolution, loadCollider);
-            return chunkMesher.GenerateMesh();
+            chunkMesher = new ChunkMesher(resolution, loadCollider, useSurfaceNets);
+            return chunkMesher.GenerateMesh(chunkData);
         });
 
         try {
@@ -56,25 +63,40 @@ public partial class ChunkManager : Node3D
     public void DeformLocal(Vector3 globalPoint, int radius, float delta)
     {
         Vector3 localPoint = ToLocal(globalPoint);
-        chunkData.Deform(localPoint, radius, delta);
-        RebuildMesh();
+        int dirty = chunkData.Deform(localPoint, radius, delta);
+        if (dirty == 1)
+        {
+            RebuildMesh();
+        }
     }
     
     private async void RebuildMesh()
     {
-        if (chunkMesher == null || chunkData == null)
+        if (chunkData == null)
+        {
+            GD.PrintErr("No chunk data found.");
             return;
+        }
+        
+        if (chunkMesher == null)
+        {
+            chunkMesher = new ChunkMesher(resolution, loadCollider, useSurfaceNets);
+        }
 
-        var meshData = await Task.Run(() => chunkMesher.GenerateMesh());
+        ArrayMeshData meshData = await Task.Run(() => chunkMesher.GenerateMesh(chunkData));
         CallDeferred(nameof(ApplyMesh), meshData);
     }
 
 
     private void ApplyMesh(ArrayMeshData meshData)
     {
-        // kill the children
-        foreach (var child in GetChildren())
-            child.QueueFree();
+        MeshInstance3D chunkMesh = GetNodeOrNull<MeshInstance3D>("Chunk Mesh");
+        if (chunkMesh == null)
+        {
+            chunkMesh = new MeshInstance3D();
+            chunkMesh.Name = "Chunk Mesh";
+            AddChild(chunkMesh);
+        }
 
         ArrayMesh arrayMesh = new ArrayMesh();
         int surfaceIndex = 0;
@@ -88,7 +110,7 @@ public partial class ChunkManager : Node3D
             surfaceArray.Resize((int)Mesh.ArrayType.Max);
 
             surfaceArray[(int)Mesh.ArrayType.Vertex] = meshData.verts.ToArray();
-            surfaceArray[(int)Mesh.ArrayType.Normal] = meshData.normals.ToArray();
+            surfaceArray[(int)Mesh.ArrayType.Normal] = meshData.vertexNormals.ToArray();
             surfaceArray[(int)Mesh.ArrayType.Index] = indices.ToArray();
 
             arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, surfaceArray);
@@ -99,28 +121,54 @@ public partial class ChunkManager : Node3D
             surfaceIndex++;
         }
 
+        chunkMesh.Mesh = arrayMesh;
+
+        // Collider stuff
         if (loadCollider)
         {
             // Body object to interact with physics
-            StaticBody3D body = new StaticBody3D();
-            AddChild(body);
+            StaticBody3D body = GetNodeOrNull<StaticBody3D>("Chunk Collider");
+            if (body == null)
+            {
+                body = new StaticBody3D();
+                body.Name = "Chunk Collider";
+                AddChild(body);
+            }
 
             // Collider mesh
-            CollisionShape3D collider = new CollisionShape3D();
+            CollisionShape3D collider = body.GetNodeOrNull<CollisionShape3D>("Collision Shape");
+            if (collider == null)
+            {
+                collider = new CollisionShape3D();
+                collider.Name = "Collision Shape";
+                body.AddChild(collider);
+            }
+
             ConcavePolygonShape3D colliderMesh = new ConcavePolygonShape3D();
             colliderMesh.SetFaces(meshData.collisionVerts.ToArray());
             collider.Shape = colliderMesh;
-            body.AddChild(collider);
         }
 
-        MeshInstance3D chunkMesh = new MeshInstance3D();
-        chunkMesh.Mesh = arrayMesh;
+        meshData.Clear();
+        chunkMesher = null; // gc collection?
+    }
 
-        AddChild(chunkMesh);
+    private void CreateWaterMesh()
+    {
+        WaterGenerator water = new WaterGenerator(resolution);
+        ArrayMesh waterArrMesh = water.GenerateMesh();
+        MeshInstance3D waterMesh = new MeshInstance3D();
+        waterMesh.Mesh = waterArrMesh;
+        StandardMaterial3D waterMat = ResourceLoader.Load<StandardMaterial3D>("res://materials/other/water.tres");
+        waterMesh.MaterialOverride = waterMat;
+        waterMesh.Name = "Water";
+
+        AddChild(waterMesh);
     }
     
     private void NotifyLoaded()
     {
+        isLoaded = true;
         OnChunkLoaded?.Invoke(this);
     }
 }

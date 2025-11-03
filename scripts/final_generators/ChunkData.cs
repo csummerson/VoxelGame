@@ -1,63 +1,15 @@
 using Godot;
 using System;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 public partial class ChunkData
 {
     private TerrainField terrainField;
-    private int chunkRadius;
-
     public float[,,] samples;
     public byte[,,] materials;
-    private bool runParallel = false;
 
-    // --- SPHERE TERRAIN ---
-    public ChunkData(TerrainField terrainField, int chunkRadius)
-    {
-        this.terrainField = terrainField;
-        this.chunkRadius = chunkRadius;
-    }
-
-    public void GenerateData(Vector3 position, Transform3D transform, int resolution = 1)
-    {
-        int chunkWidth = WorldGenUtility.chunkSize;
-        int chunkHeight = WorldGenUtility.chunkHeight;
-
-        int pointWidth = (chunkWidth + 1) / resolution;
-        int pointHeight = (chunkHeight + 1) / resolution;
-
-        samples = new float[pointWidth, pointHeight, pointWidth];
-
-        if (runParallel)
-        {
-            Parallel.For(0, pointWidth / resolution, xi =>
-            {
-                int x = xi * resolution;
-                for (int y = 0; y < pointHeight; y += resolution)
-                {
-                    for (int z = 0; z < pointWidth; z += resolution)
-                    {
-                        Vector3 samplePoint = position + new Vector3(x * resolution, y * resolution, z * resolution);
-                        samples[x, y, z] = terrainField.SampleField(samplePoint, transform, chunkRadius * 16);
-                    }
-                }
-            });
-        }
-        else
-        {
-            for (int x = 0; x < pointWidth; x += resolution)
-            {
-                for (int y = 0; y < pointHeight; y += resolution)
-                {
-                    for (int z = 0; z < pointWidth; z += resolution)
-                    {
-                        Vector3 samplePoint = position + new Vector3(x * resolution, y * resolution, z * resolution);
-                        samples[x, y, z] = terrainField.SampleField(samplePoint, transform, chunkRadius * 16);
-                    }
-                }
-            }
-        }
-    }
+    public bool parallel = false;
 
     // --- FLAT TERRAIN ---
     public ChunkData(TerrainField terrainField)
@@ -67,6 +19,8 @@ public partial class ChunkData
 
     public float[,,] GenerateData(Vector3 position, int resolution)
     {
+        //Stopwatch stopwatch = Stopwatch.StartNew();
+        
         int chunkWidth = WorldGenUtility.chunkSize;
         int chunkHeight = WorldGenUtility.chunkHeight;
 
@@ -76,77 +30,56 @@ public partial class ChunkData
         samples = new float[pointWidth, pointHeight, pointWidth];
         materials = new byte[pointWidth, pointHeight, pointWidth];
 
-        if (runParallel)
+        if (parallel)
         {
-            int slabSize = 8;
-            Parallel.For(0, pointHeight / slabSize, yi =>
+            Parallel.For(0, pointWidth, x =>
             {
-                int yStart = yi * slabSize;
-                int yEnd = Math.Min(yStart + slabSize, pointHeight);
-
-                for (int y = yStart; y < yEnd; y++)
+                float sx = position.X + x * resolution;
+                for (int y = 0; y < pointHeight; y++)
                 {
-                    for (int x = 0; x < pointWidth; x++)
+                    float sy = position.Y + y * resolution;
+                    for (int z = 0; z < pointWidth; z++)
                     {
-                        for (int z = 0; z < pointWidth; z++)
-                        {
-                            Vector3 samplePoint = position + new Vector3(x * resolution, y * resolution, z * resolution);
-                            float density = terrainField.SampleField(samplePoint);
-                            samples[x, y, z] = density;
+                        float sz = position.Z + z * resolution;
 
-                            if (density > 0)
-                            {
-                                if (samplePoint.Y < 0)
-                                    materials[x, y, z] = 1;
-                                else if (samplePoint.Y < 64)
-                                    materials[x, y, z] = 2;
-                                else
-                                    materials[x, y, z] = 3;
-                            }
-                            else
-                            {
-                                materials[x, y, z] = 0;
-                            }
-                        }
+                        terrainField.SampleField(sx, sy, sz, out float density, out byte material);
+                        
+                        samples[x, y, z] = density;
+                        materials[x, y, z] = material;
                     }
                 }
             });
-        }
-        else
+        } else
         {
             for (int x = 0; x < pointWidth; x++)
             {
+                float sx = position.X + x * resolution;
                 for (int y = 0; y < pointHeight; y++)
                 {
+                    float sy = position.Y + y * resolution;
                     for (int z = 0; z < pointWidth; z++)
                     {
-                        Vector3 samplePoint = position + new Vector3(x * resolution, y * resolution, z * resolution);
-                        float density = terrainField.SampleField(samplePoint);
-                        samples[x, y, z] = density;
+                        float sz = position.Z + z * resolution;
 
-                        if (density > 0)
-                        {
-                            if (samplePoint.Y < 0)
-                                materials[x, y, z] = 1; // stone
-                            else if (samplePoint.Y < 60)
-                                materials[x, y, z] = 2; // sand
-                            else
-                                materials[x, y, z] = 3; // grass
-                        }
-                        else
-                        {
-                            materials[x, y, z] = 0;
-                        }
+                        terrainField.SampleField(sx, sy, sz, out float density, out byte material);
+                        
+                        samples[x, y, z] = density;
+                        materials[x, y, z] = material;
                     }
                 }
             }
         }
-        
+
+        //stopwatch.Stop();
+        //GD.Print("GenerateData took: " + stopwatch.ElapsedMilliseconds + "ms");
+
         return samples;
     }
-
-    public void Deform(Vector3 localPoint, int radius, float delta = -10f)
+    
+    public int Deform(Vector3 localPoint, int radius, float delta = -10f)
     {
+        int dirty = 0;
+        
         int width = samples.GetLength(0);
         int height = samples.GetLength(1);
         int depth = samples.GetLength(2);
@@ -162,21 +95,24 @@ public partial class ChunkData
                 for (int z = -radius; z <= radius; z++)
                 {
                     Vector3I offset = new Vector3I(x, y, z);
-                    if (offset.Length() > radius)
+                    if (offset.LengthSquared() > radius * radius)
                         continue;
 
                     int vx = centerX + x;
                     int vy = centerY + y;
                     int vz = centerZ + z;
 
-                    if (vx >= 0 && vy >= 0 && vz >= 0 &&
+                    if (vx >= 0 && vy >= 10 && vz >= 0 &&
                         vx < width && vy < height && vz < depth)
                     {
-                        samples[vx, vy, vz] += delta;
+                        dirty = 1;
+                        samples[vx, vy, vz] = delta;
                         materials[vx, vy, vz] = 0;
                     }
                 }
             }
         }
+
+        return dirty;
     }
 }

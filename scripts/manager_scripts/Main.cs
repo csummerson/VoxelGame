@@ -29,11 +29,17 @@ public partial class Main : Node
 
 	private void StartPlayer()
 	{
-		GD.Print("Launching as player...");
-		int saveState = SaveManager.Instance.LoadData();
+		SaveManager.Instance.LoadData();
+		GameSettings.Instance.ManualLoad();
 
-
-
-		GetTree().CallDeferred("change_scene_to_packed", playerScenes[saveState]);
+		GD.Print("Launching as client...");
+		
+		if (GameSettings.Instance.hasSeenTerminal)
+		{
+			GetTree().CallDeferred("change_scene_to_packed", playerScenes[1]);
+		} else
+        {
+            GetTree().CallDeferred("change_scene_to_packed", playerScenes[0]);
+        }
 	}
 }

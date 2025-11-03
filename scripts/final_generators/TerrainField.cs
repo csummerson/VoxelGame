@@ -3,10 +3,10 @@ using System;
 
 public partial class TerrainField
 {
-    private FastNoiseLite noise3D;
+    private FastNoiseLite terrainNoise;
+    private FastNoiseLite caveNoise;
 
-    private float baseHeight = 20f;
-
+    private float baseHeight = 154f;
 
     private int numLayers = 4;
     private float strength = 40;
@@ -14,46 +14,89 @@ public partial class TerrainField
     private float roughness = 1;
     private float persistence = .5f;
 
+    private float caveFrequency = 0.01f;
+    private float caveThreshold = 0.4f;
+    private float caveStrength = 500f;
 
-    public int seed = 3564;
+    private float maxNoiseSum;
 
-    public TerrainField(int seed) {
-        noise3D = new FastNoiseLite();
-        noise3D.Seed = seed;
+    public TerrainField(int seed)
+    {
+        terrainNoise = new FastNoiseLite();
+        terrainNoise.Seed = seed;
+        terrainNoise.NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex;
+
+        caveNoise = new FastNoiseLite();
+        caveNoise.Seed = seed;
+        caveNoise.Frequency = caveFrequency;
+        caveNoise.NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex;
+
+        float amplitude = 1f;
+        float sum = 0f;
+        for (int i = 0; i < numLayers; i++)
+        {
+            sum += amplitude;
+            amplitude *= persistence;
+        }
+        maxNoiseSum = sum;
     }
 
-
-    public float SampleField(Vector3 localPosition, Transform3D transform, float radius)
+    public void SampleField(float x, float y, float z, out float terrainDensity, out byte material)
     {
-        Vector3 spherePosition = WorldGenUtility.CubeToSphere(localPosition, transform, radius) * WorldGenUtility.chunkSize;
-        float noiseValue = 0;
+        // exit out of y stuff for now
+        float maxPossible = baseHeight + (maxNoiseSum * strength) - y;
+        if (maxPossible <= 0)
+        {
+            terrainDensity = -1f;
+            material = 0;
+            return;
+        }
+        
+        // surface
+        float noiseSum = 0;
         float frequency = baseRoughness;
         float amplitude = 1;
 
         for (int i = 0; i < numLayers; i++)
         {
-            float v = noise3D.GetNoise3Dv(spherePosition * frequency);
-            noiseValue += (v + 1) * .5f * amplitude;
+            noiseSum += (terrainNoise.GetNoise2D(x * frequency, z * frequency) + 1f) * 0.5f * amplitude;
             frequency *= roughness;
             amplitude *= persistence;
         }
 
-        return noiseValue * strength + baseHeight - localPosition.Y;
-    }
+        terrainDensity = noiseSum * strength + baseHeight - y;
 
-    public float SampleField(Vector3 worldPosition)
-    {
-        float noiseValue = 0;
-        float frequency = baseRoughness;
-        float amplitude = 1;
-
-        for (int i = 0; i < numLayers; i++)
+        // caves
+        if (terrainDensity > 0) 
         {
-            float v = noise3D.GetNoise3Dv(worldPosition * frequency);
-            noiseValue += (v + 1) * .5f * amplitude;
-            frequency *= roughness;
-            amplitude *= persistence;
+            float caveValue = caveNoise.GetNoise3D(x, y, z);
+            
+            if (caveValue > caveThreshold)
+            {
+                terrainDensity = -caveStrength * (caveValue - caveThreshold);
+            }
         }
-        return noiseValue * strength + baseHeight - worldPosition.Y;
+
+        if (y < 10)
+        {
+            terrainDensity += 500 / (y + 1);
+        }
+
+        // Material assignment
+        if (terrainDensity > 0)
+        {
+            if (y < 10)
+                material = 4; // mantleshell
+            else if (y < 180)
+                material = 1; // stone
+            else if (y < 194)
+                material = 2; // sand
+            else
+                material = 3; // grass
+        }
+        else
+        {
+            material = 0;
+        }
     }
 }

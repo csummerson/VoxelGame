@@ -7,7 +7,7 @@ public partial class VersionLabel : Label
 	
 	public override void _Ready()
 	{
-		version = "Vox " + (string)ProjectSettings.GetSetting("application/config/version");
+		version = "0xDEC " + (string)ProjectSettings.GetSetting("application/config/version");
 	}
 
     public override void _Process(double delta)

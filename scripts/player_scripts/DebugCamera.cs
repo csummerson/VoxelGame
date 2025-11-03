@@ -24,16 +24,13 @@ public partial class DebugCamera : Node3D
 
 	public override void _Ready()
 	{
-		Input.MouseMode = Input.MouseModeEnum.Captured;
-		
 		if (placeOnSurface) Position = new Vector3(0, (GameManager.Instance.SIZE + 3) * 16, 0);
 
 		if (!isactive)
 		{
 			return;
 		}
-
-		Input.MouseMode = Input.MouseModeEnum.Captured;
+		
 		Camera.MakeCurrent();
 	}
 
@@ -78,6 +75,8 @@ public partial class DebugCamera : Node3D
 
 	public void Look(double delta)
 	{
+		MouseSensitivity = GameSettings.Instance.mouseSensitivity / 200f;
+		
 		camX -= mouseDelta.Y * MouseSensitivity;
 		camX = Mathf.Clamp(camX, -90f, 90f);
 		camY = -mouseDelta.X * MouseSensitivity;

@@ -6,7 +6,7 @@ using System.Drawing;
 public static class WorldGenUtility
 {
     public const int chunkSize = 16;
-    public const int chunkHeight = 256;
+    public const int chunkHeight = 512;
 
 
     // Array references
@@ -118,7 +118,7 @@ public static class WorldGenUtility
         }
         return (int)Mathf.Pow(2, lodThresholds.Length);
     }
-    
+
     public static int LODIndex(int distance, int[] lodThresholds)
     {
         for (int i = 0; i < lodThresholds.Length; i++)
@@ -193,6 +193,11 @@ public static class WorldGenUtility
         int x = Mathf.FloorToInt(position.X / scale);
         int y = Mathf.FloorToInt(position.Z / scale);
         return new Vector2I(x, y);
+    }
+
+    public static Vector2I FallToLod(Vector2I offset, int lod)
+    {
+        return offset / lod;
     }
 
 

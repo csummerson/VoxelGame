@@ -15,22 +15,32 @@ public partial class LoadSequence : Node
 
     private List<Label> labels = new List<Label>();
 
-    [Export] public PackedScene firstPlanet;
+    [Export] public PackedScene level;
 
     string version = (string)ProjectSettings.GetSetting("application/config/version");
 
     public override void _Ready()
     {
+        GameManager.Instance.canPause = false;
         Input.MouseMode = Input.MouseModeEnum.Visible;
         _ = RunSequence();
         terminalLine.Connect("text_submitted", new Callable(this, nameof(OnPlayerInputSubmitted)));
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("skip_lore")) {
+            LoadLevel();
+            GameSettings.Instance.hasSeenTerminal = true;
+        }
+    }
+
+
     private async Task RunSequence()
     {
         if (GameManager.Instance.hasSeenTerminal)
         {
-            LoadPlanet();
+            LoadLevel();
         }
         else
         {
@@ -44,25 +54,39 @@ public partial class LoadSequence : Node
     private async Task RunTerminalStartSequence()
     {
         await AddLabelTimer(TorOutScene, $"[NULL] v{version}", 0, 0);
-        await AddLabelTimer(TorOutScene, "(c) [REDACTED] Archive. All rites observed.", 0, 0);
+        await AddLabelTimer(TorOutScene, "(c) Torican Archive. All rites observed.", 0, 0);
         await AddLabelTimer(TorOutScene, " ", 0, 3f);
 
-        await AddLabelTimer(TorOutScene, "ERROR: NOT RECOGNIZED AS A VALID TEST.");
-        await AddLabelTimer(TorOutScene, "LOADING EXPERIMENTAL DEMONSRTATION...");
+        await AddLabelTimer(TorOutScene, "This is a rudimentary performance test of various Interfaces.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
+        await AddLabelTimer(TorOutScene, "You are expected to test the Process's performance with various settings and submit your results.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
 
-        await AddLabelTimer(TorOutScene, $"...", 0.2f);
+        await AddLabelTimer(TorOutScene, "You may adjust them in the settings menu by inputting 'escape' at any time.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
 
-        DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
-        GameManager.Instance.hasSeenTerminal = true;
+        await AddLabelTimer(TorOutScene, "Additional debug options are explained where you sourced this file.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
+
+        await AddLabelTimer(TorOutScene, "Should you find your Interface unable to support the Process, make a mark of such.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
+
+        await AddLabelTimer(TorOutScene, "Not all will be compatible.");
+        await AddLabelTimer(TorOutScene, " ", 0, 2f);
+
+        await AddLabelTimer(TorOutScene, $"LOADING...", 0.5f);
+
+        GameSettings.Instance.hasSeenTerminal = true;
 
         Input.MouseMode = Input.MouseModeEnum.Captured;
+        GameManager.Instance.canPause = true;
 
-        LoadPlanet();
+        LoadLevel();
     }
 
-    private void LoadPlanet()
+    private void LoadLevel()
     {
-        GetTree().ChangeSceneToPacked(firstPlanet);
+        GetTree().ChangeSceneToPacked(level);
     }
 
     private async Task AddLabelTimer(PackedScene scene, string text, float delay = 0.025f, float pause = 1f)
