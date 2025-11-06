@@ -4,7 +4,7 @@
 
 ## About
 This repository is a developmental snapshot of a voxel game I am working on. You can download a build of this game [here](https://bit.ly/3LpBpoB).
-This project was built in Godot using C#, and demonstrates systems programming, 3D rendering, and real time generation.
+This project was built in Godot using C#, and demonstrates meshing algorithms, 3D rendering, and real time generation.
 
 ## Features
 - Procedural world generation using a Signed Distance Field.
