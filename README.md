@@ -3,7 +3,7 @@
 ![World Image](media/world-min.png)
 
 ## About
-This repository is a developmental snapshot of a voxel game I am working on. You can download a build of this game [here](https://bit.ly/3LpBpoB).
+This repository is a developmental snapshot of a voxel game I am working on. You can download a build of this game [here](https://bit.ly/3JPizHa).
 This project was built in Godot using C#, and demonstrates meshing algorithms, 3D rendering, and real time generation.
 
 ## Features
